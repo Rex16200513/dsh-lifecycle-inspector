@@ -7,6 +7,27 @@ function flattenEffects(effects, depth = 0) {
   ])
 }
 
+const EFFECT_GROUPS = [
+  ['Services', /ctx\.provide\(/u],
+  ['Event listeners', /ctx\.on\(/u],
+  ['Commands and tools', /(?:commands|tools)\.register\(/u],
+  ['Child plugins', /ctx\.plugin\(\)/u],
+  ['Cleanup-sensitive resources', /(?:timer|interval|watch|worker|process|socket|server|stream|close|dispose|cleanup|teardown|pty)/iu],
+]
+
+/** Summarize raw Cordis effect labels into user-facing resource groups. */
+export function summarizeEffects(effects) {
+  const counts = Object.fromEntries(EFFECT_GROUPS.map(([name]) => [name, 0]))
+  counts.Other = 0
+  for (const effect of effects) {
+    const group = EFFECT_GROUPS.find(([, pattern]) => pattern.test(effect.label))
+    counts[group?.[0] ?? 'Other'] += 1
+  }
+  return Object.entries(counts)
+    .filter(([, count]) => count > 0)
+    .map(([name, count]) => ({ name, count }))
+}
+
 /** Read-only lifecycle projection over Cordis loader entries. */
 export class LifecycleInspector {
   constructor(loader, options = {}) {
@@ -37,15 +58,29 @@ export class LifecycleInspector {
       .map(entry => {
         const fiber = entry.fiber
         const effects = fiber?.getEffects() ?? []
+        const flattened = flattenEffects(effects)
         return {
           id: entry.id,
           configId: entry.options.id,
           moduleName: entry.options.name,
           phase: fiber === undefined ? (entry.disabled ? 'disabled' : 'unmounted') : PHASE[fiber.state],
-          effectCount: flattenEffects(effects).length,
-          effects: flattenEffects(effects),
+          effectCount: flattened.length,
+          effects: flattened,
+          effectSummary: summarizeEffects(flattened),
         }
       })
+  }
+
+  overview() {
+    const plugins = this.list()
+    const phases = Object.fromEntries(['active', 'disabled', 'pending', 'loading', 'failed', 'unloading', 'disposed', 'unmounted'].map(phase => [phase, 0]))
+    for (const plugin of plugins) phases[plugin.phase] = (phases[plugin.phase] ?? 0) + 1
+    return {
+      total: plugins.length,
+      phases,
+      attention: plugins.filter(plugin => ['failed', 'unloading', 'pending'].includes(plugin.phase)),
+      plugins,
+    }
   }
 
   report(id) {
