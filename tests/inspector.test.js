@@ -11,7 +11,7 @@ test('flattens nested effect diagnostics', () => {
 
 test('projects fibers and identifies slow teardown', () => {
   const fiber = { name: 'demo', state: 2, getEffects: () => [{ label: 'timer', children: [] }] }
-  const loader = { entries: () => [{ id: 'demo', options: { name: 'demo' }, fiber }] }
+  const loader = { entries: () => [{ id: 'include/demo-entry', options: { id: 'demo-entry', name: 'dsh-demo' }, fiber }] }
   const inspector = new LifecycleInspector(loader, { slowTeardownMs: 10 })
   assert.equal(inspector.list()[0].effectCount, 1)
   fiber.state = 5
@@ -19,5 +19,6 @@ test('projects fibers and identifies slow teardown', () => {
   fiber.state = 4
   inspector.observe(fiber, 5, 120)
   assert.equal(inspector.report('demo').verdict, 'slow')
-  assert.equal(inspector.report('demo').teardownMs, 20)
+  assert.equal(inspector.report('demo-entry').teardownMs, 20)
+  assert.equal(inspector.report('dsh-demo').teardownMs, 20)
 })

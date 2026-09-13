@@ -39,6 +39,7 @@ export class LifecycleInspector {
         const effects = fiber?.getEffects() ?? []
         return {
           id: entry.id,
+          configId: entry.options.id,
           moduleName: entry.options.name,
           phase: fiber === undefined ? (entry.disabled ? 'disabled' : 'unmounted') : PHASE[fiber.state],
           effectCount: flattenEffects(effects).length,
@@ -48,9 +49,20 @@ export class LifecycleInspector {
   }
 
   report(id) {
-    const plugin = this.list().find(entry => entry.id === id || entry.moduleName === id)
+    const plugin = this.list().find(entry =>
+      entry.id === id
+      || entry.configId === id
+      || entry.moduleName === id
+      || entry.moduleName === `dsh-${id}`,
+    )
     if (plugin === undefined) return undefined
-    const transitions = this.transitions.filter(item => item.plugin === plugin.moduleName || item.plugin === id)
+    const shortModuleName = plugin.moduleName.startsWith('dsh-') ? plugin.moduleName.slice(4) : plugin.moduleName
+    const transitions = this.transitions.filter(item =>
+      item.plugin === plugin.moduleName
+      || item.plugin === plugin.configId
+      || item.plugin === shortModuleName
+      || item.plugin === id,
+    )
     const lastTeardown = [...transitions].reverse().find(item => item.teardownMs !== undefined)
     return {
       ...plugin,
