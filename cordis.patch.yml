@@ -1,0 +1,6 @@
+- insert:
+    - id: lifecycle-inspector
+      name: dsh-lifecycle-inspector
+      config:
+        slowTeardownMs: 2000
+        historyLimit: 100

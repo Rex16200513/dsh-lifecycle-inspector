@@ -1,0 +1,28 @@
+{
+  "name": "dsh-lifecycle-inspector",
+  "version": "0.1.0",
+  "description": "Diagnose DSH plugin lifecycle state, live effects, and teardown outcomes",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "cordis.patch.yml", "README.md", "README.zh.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/index.js && node --check src/inspector.js"
+  },
+  "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "cordis", "diagnostics", "lifecycle", "effects"],
+  "engines": { "node": "^22.19.0 || >=24.0.0" },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/cordis-plugin-loader": "^1.0.0",
+    "@deepseek-ai/dsh-commands": ">=0.1.0-rc.5 <0.2.0",
+    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.5 <0.2.0"
+  },
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/Rex16200513/dsh-lifecycle-inspector.git" },
+  "homepage": "https://github.com/Rex16200513/dsh-lifecycle-inspector#readme",
+  "bugs": { "url": "https://github.com/Rex16200513/dsh-lifecycle-inspector/issues" }
+}
