@@ -1,7 +1,7 @@
 {
   "name": "dsh-lifecycle-inspector",
   "version": "0.2.0",
-  "description": "Diagnose DSH plugin lifecycle state, live effects, and teardown outcomes",
+  "description": "Visual lifecycle diagnostics for DeepSeek Harness plugins, Cordis Effects, and teardown outcomes",
   "type": "module",
   "exports": {
     ".": "./src/index.js",
