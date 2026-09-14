@@ -1,8 +1,11 @@
 import { defineTool } from '@deepseek-ai/dsh-tools'
+import { writeReportResponse } from './http.js'
 import { LifecycleInspector } from './inspector.js'
 
 export const name = 'lifecycle-inspector'
 export const inject = ['loader', 'commands', 'tools']
+
+const REPORT_ENDPOINT = '/lifecycle-inspector/report'
 
 function renderOverview(overview, verbose = false) {
   const { phases, attention, plugins } = overview
@@ -54,6 +57,14 @@ function renderReport(plugin, verbose = false) {
 export function apply(ctx, config = {}) {
   const inspector = new LifecycleInspector(ctx.loader, config)
   ctx.on('internal/status', (fiber, oldState) => inspector.observe(fiber, oldState), { global: true })
+
+  ctx.inject(['webServer'], (webCtx) => {
+    webCtx.effect(() => webCtx.webServer.register({
+      kind: 'exact',
+      path: REPORT_ENDPOINT,
+      handler: (req, res) => writeReportResponse(req, res, inspector),
+    }), 'lifecycle-inspector: report route')
+  })
 
   ctx.commands.register({
     name: 'lifecycle',
